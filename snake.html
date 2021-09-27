@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  	<title>COBRA</title>
+    <link href="https://fonts.googleapis.com/css?family=Antic+Slab" rel="stylesheet">
+
+  </head>
+
+  <body>
+
+    <canvas id="gameCanvas" width="500" height="500"></canvas>
+
+    <style>
+      #gameCanvas {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+    </style>
+  </body>
+
+  <script>
+
+    //define onde a cobra spawna
+    let snake = [
+      {x: 250, y: 250},
+      {x: 240, y: 250},
+      {x: 230, y: 250},
+      {x: 220, y: 250},
+      {x: 210, y: 250}
+    ]
+
+    //Changinging direction inicia como falso
+    let changing_direction = false;
+    
+    let foodx;
+    let foody;
+
+    //velocdade horizontal
+    let dx = 10;
+    //velocidade vertical
+    let dy = 0;
+
+
+
+
+    // Define que será uma plataforma 2D
+    const gameCanvas = document.getElementById("gameCanvas")
+    const gameCanvas_ctx = gameCanvas.getContext("2d");
+    // Start game
+    main();
+    
+    gera_food();
+
+    //chama o evento para mudar direção
+    document.addEventListener("keydown", change_direction);
+
+    // Função para rodar o game
+    function main() {
+
+      if (endgame()) return;   
+
+      changing_direction = false;
+      setTimeout(function onTick(){
+        clearCanvas();
+        drawFood();
+        move_snake();
+        drawSnake()
+        main();
+      },100)
+    }
+    
+    // Criando o espaço onde o jogo acontece
+    function clearCanvas() {
+
+      gameCanvas_ctx.fillStyle = 'darkgray';
+      gameCanvas_ctx.strokestyle = 'black';
+      gameCanvas_ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height)
+      gameCanvas_ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height);
+    }
+    
+    //Desenha a cobra no canvas
+    function drawSnake() 
+    {
+      snake.forEach(makeSnakeBlock)
+    }
+
+    //desenha comidinha
+    function drawFood()
+    {
+      gameCanvas_ctx.fillStyle = 'red';
+      //gameCanvas_ctx.strokestyle = 'darkred';
+      gameCanvas_ctx.fillRect(foodx, foody, 10, 10);
+      //gameCanvas_ctx.strokeRect(foodx, foody, 10, 10);
+    }
+
+    
+    //  cobra criada por blocos
+    function makeSnakeBlock(snakeBlock) 
+    {
+      gameCanvas_ctx.fillStyle = 'purple';
+      //Preecnche os retangulos
+      
+      gameCanvas_ctx.fillRect(snakeBlock.x, snakeBlock.y, 10, 10);
+      //Bordas
+      gameCanvas_ctx.strokeRect(snakeBlock.x, snakeBlock.y, 10, 10);
+    }
+      //Dando fim ao jogo
+      //Se a cobra bater com a cabeça nas laterais ou se bater nela mesmo.
+ 
+      function endgame()
+      {
+        for (let i = 4; i < snake.length; i++)
+        {
+          if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) return true
+        }
+            const hitLeft = snake[0].x < 0;
+            const hitRight = snake[0].x > gameCanvas.width - 10;
+            const hitTop = snake[0].y < 0;  
+            const hitBottom = snake[0].y > gameCanvas.height - 10;
+            return hitLeft || hitRight || hitBottom|| hitTop
+
+            
+          }
+    //aleatorizando onde a comiida vai cair
+    function random_food(min, max)
+    {
+      return Math.round((Math.random() * (max-min) + min) / 10) * 10;
+    }
+    // gera a comida da cobrinha
+    function gera_food()
+    {
+      foodx = random_food(0, gameCanvas.width - 10);
+      foody = random_food(0, gameCanvas.height - 10);
+      snake.forEach(function eatfood(block) 
+      {
+        const eat = block.x == foodx && block.y == foody;
+        if (eat) gera_food();
+          
+      });
+    }
+
+    
+
+
+    function change_direction(event)
+    {
+      const LEFT = 37;
+      const RIGHT = 39;
+      const  UP = 38;
+      const DOWN = 40;
+      
+      if (changing_direction) return;
+      changing_direction = true;
+      const keyPressed = event.keyCode;
+      const sobe = dy === -10;
+      const desce = dy === 10;
+      const direita = dx === 10;
+      const esquerda = dx === -10;  
+
+      if (keyPressed === LEFT && !direita)
+      {
+        dx = -10;
+        dy = 0;
+      }
+      if (keyPressed === RIGHT && !esquerda)
+      {
+        dx = 10;
+        dy = 0;
+      }
+      if (keyPressed === UP && !desce)
+      {
+        dx = 0;
+        dy = -10;
+      }      
+      if (keyPressed === DOWN && !sobe)
+      {
+        dx = 0;
+        dy = 10;
+      }      
+  
+      }
+    
+
+    //Movimento horizontal|| cria uma nova cabeça e exclui o ultimo bloco || Caso a cobra coma comida, o ultimo bloco não é excluido
+
+    function move_snake()
+    {
+      const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+      snake.unshift(head);
+      const eatfood = snake[0].x === foodx && snake[0].y === foody;
+      
+      if (eatfood) {
+        gera_food();
+        
+      } else {
+        snake.pop();  
+      }
+      
+    }
+
+      
+
+  </script>
+</html>
